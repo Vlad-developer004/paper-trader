@@ -1,16 +1,17 @@
 import { NavLink } from "react-router-dom";
+import { useLanguage, type TranslationKey } from "../lib/i18n/index.js";
 
-const tabs = [
+const tabs: { to: string; labelKey: TranslationKey; icon: JSX.Element }[] = [
   {
     to: "/",
-    label: "Dashboard",
+    labelKey: "nav.dashboard",
     icon: (
       <path d="M4 18L10 12L14 16L20 8" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
     ),
   },
   {
     to: "/portfolio",
-    label: "Portfolio",
+    labelKey: "nav.portfolio",
     icon: (
       <>
         <rect x="3" y="8" width="18" height="12" rx="2.5" stroke="currentColor" strokeWidth="2" />
@@ -20,7 +21,7 @@ const tabs = [
   },
   {
     to: "/history",
-    label: "History",
+    labelKey: "nav.history",
     icon: (
       <>
         <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="2" />
@@ -30,7 +31,7 @@ const tabs = [
   },
   {
     to: "/leaderboard",
-    label: "Leaders",
+    labelKey: "tab.leaders",
     icon: (
       <>
         <path d="M7 4H17V9C17 11.76 14.76 14 12 14C9.24 14 7 11.76 7 9V4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
@@ -41,6 +42,7 @@ const tabs = [
 ];
 
 export function BottomTabBar() {
+  const { t } = useLanguage();
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t border-border bg-card px-3 pb-5 pt-3 md:hidden">
       {tabs.map((tab) => (
@@ -56,7 +58,7 @@ export function BottomTabBar() {
                   {tab.icon}
                 </svg>
               </div>
-              <span className={`text-[10px] font-bold ${isActive ? "text-fg" : "text-muted"}`}>{tab.label}</span>
+              <span className={`text-[10px] font-bold ${isActive ? "text-fg" : "text-muted"}`}>{t(tab.labelKey)}</span>
             </>
           )}
         </NavLink>

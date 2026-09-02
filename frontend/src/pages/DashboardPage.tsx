@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { usePriceFeed, type AssetSymbol } from "../lib/binanceSocket.js";
 import { apiFetch, getToken } from "../lib/api.js";
+import { useLanguage } from "../lib/i18n/index.js";
 import { formatCents, formatUnits, splitCents } from "../lib/format.js";
 import { Card } from "../components/Card.js";
 import { Button } from "../components/Button.js";
@@ -37,6 +38,7 @@ function pctChange(current: number | undefined, base: number | undefined): numbe
 }
 
 export function DashboardPage() {
+  const { t } = useLanguage();
   const { prices, basePrices, connected } = usePriceFeed();
   const [asset, setAsset] = useState<AssetSymbol>("BTC");
   const [side, setSide] = useState<"BUY" | "SELL">("BUY");
@@ -57,11 +59,11 @@ export function DashboardPage() {
     }
     setLoadError(null);
     Promise.all([apiFetch<PortfolioData>("/portfolio"), apiFetch<Trade[]>("/trades")])
-      .then(([p, t]) => {
+      .then(([p, trades]) => {
         setPortfolio(p);
-        setTrades(t);
+        setTrades(trades);
       })
-      .catch((err) => setLoadError(err instanceof Error ? err.message : "Failed to load"));
+      .catch((err) => setLoadError(err instanceof Error ? err.message : t("common.failedToLoad")));
   }, [retryKey]);
 
   async function submitOrder(e: React.FormEvent) {
@@ -76,10 +78,10 @@ export function DashboardPage() {
           body: JSON.stringify({ asset, side, quantity, limitPrice }),
         });
       }
-      setMessage("Order placed.");
-      setRetryKey((k) => k + 1); // pull the fresh balance/positions/trades right away, don't wait for a reload
+      setMessage(t("dashboard.orderPlaced"));
+      setRetryKey((k) => k + 1);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Order failed");
+      setMessage(err instanceof Error ? err.message : t("dashboard.orderFailed"));
     }
   }
 
@@ -87,11 +89,11 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* HERO */}
       <Reveal className="flex flex-col flex-wrap gap-6 pt-2 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[oklch(0.55_0.1_40)]">
-            Demo portfolio <span className="font-serif italic text-base normal-case tracking-normal text-accent">value</span>
+            {t("dashboard.demoPortfolio")}{" "}
+            <span className="font-serif italic text-base normal-case tracking-normal text-accent">{t("dashboard.value")}</span>
           </div>
           <div className="num mt-2 break-all text-5xl font-extrabold tracking-tight md:text-6xl">
             {portfolio ? (
@@ -109,13 +111,11 @@ export function DashboardPage() {
                 {pnl >= 0 ? "+" : ""}
                 {formatCents(portfolio.totalPnlCents)}
               </Badge>
-              <span className="text-sm text-muted">since you started with $10,000</span>
+              <span className="text-sm text-muted">{t("dashboard.sinceStarted")}</span>
             </div>
           )}
         </div>
 
-        {/* Desktop: horizontal price chips. Mobile gets its own stacked-list layout below —
-            these chips are wide enough that a naive reflow would clip the third one off-screen. */}
         <div className="hidden gap-3 md:flex">
           {ASSETS.map((a) => {
             const change = pctChange(prices[a], basePrices[a]);
@@ -138,7 +138,6 @@ export function DashboardPage() {
         </div>
       </Reveal>
 
-      {/* Mobile: ticker as full-width stacked rows, no horizontal scroll/clipping */}
       <div className="flex flex-col gap-2 md:hidden">
         {ASSETS.map((a, i) => {
           const change = pctChange(prices[a], basePrices[a]);
@@ -160,9 +159,7 @@ export function DashboardPage() {
         })}
       </div>
 
-      {/* MAIN GRID */}
       <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
-        {/* CHART CARD */}
         <Reveal delay={80}>
         <Card className="flex flex-col gap-5">
           <div className="flex flex-wrap items-center justify-between gap-y-2">
@@ -180,7 +177,9 @@ export function DashboardPage() {
                 </button>
               ))}
             </div>
-            <div className="shrink-0 text-xs font-bold text-muted">{connected ? "Live" : "Connecting…"}</div>
+            <div className="shrink-0 text-xs font-bold text-muted">
+              {connected ? t("dashboard.live") : t("dashboard.connecting")}
+            </div>
           </div>
 
           <div>
@@ -191,29 +190,28 @@ export function DashboardPage() {
 
           <div className="grid grid-cols-3 gap-3 border-t border-border pt-4">
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-muted">Portfolio value</div>
+              <div className="text-xs font-semibold text-muted">{t("dashboard.portfolioValue")}</div>
               <div className="num mt-1 break-all text-lg font-bold">
                 {portfolio ? formatCents(portfolio.balanceCents) : "—"}
               </div>
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-muted">Total P&amp;L</div>
+              <div className="text-xs font-semibold text-muted">{t("dashboard.totalPnl")}</div>
               <div className={`num mt-1 break-all text-lg font-bold ${pnl >= 0 ? "text-positive" : "text-negative"}`}>
                 {portfolio ? formatCents(portfolio.totalPnlCents) : "—"}
               </div>
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-muted">Positions</div>
+              <div className="text-xs font-semibold text-muted">{t("dashboard.positions")}</div>
               <div className="num mt-1 text-lg font-bold">{portfolio ? portfolio.positions.length : "—"}</div>
             </div>
           </div>
         </Card>
         </Reveal>
 
-        {/* TRADE PANEL */}
         <Reveal delay={140}>
         <Card className="flex h-fit flex-col gap-4">
-          <div className="text-base font-bold">Place order</div>
+          <div className="text-base font-bold">{t("dashboard.placeOrder")}</div>
           <form onSubmit={submitOrder} className="flex flex-col gap-4">
             <div className="flex gap-1.5 rounded-xl bg-black/5 p-1 dark:bg-white/5">
               <button
@@ -223,7 +221,7 @@ export function DashboardPage() {
                   side === "BUY" ? "bg-accent text-white" : "text-muted"
                 }`}
               >
-                Buy
+                {t("common.buy")}
               </button>
               <button
                 type="button"
@@ -232,7 +230,7 @@ export function DashboardPage() {
                   side === "SELL" ? "bg-negative text-white" : "text-muted"
                 }`}
               >
-                Sell
+                {t("common.sell")}
               </button>
             </div>
 
@@ -244,7 +242,7 @@ export function DashboardPage() {
                   orderType === "MARKET" ? "border-b-2 border-accent" : "text-muted"
                 }`}
               >
-                Market
+                {t("dashboard.market")}
               </button>
               <button
                 type="button"
@@ -253,17 +251,17 @@ export function DashboardPage() {
                   orderType === "LIMIT" ? "border-b-2 border-accent" : "text-muted"
                 }`}
               >
-                Limit
+                {t("dashboard.limit")}
               </button>
             </div>
 
             <div>
-              <div className="mb-1.5 text-xs font-semibold text-muted">Asset</div>
+              <div className="mb-1.5 text-xs font-semibold text-muted">{t("common.asset")}</div>
               <AssetSelect value={asset} onChange={setAsset} />
             </div>
 
             <label className="block">
-              <div className="mb-1.5 text-xs font-semibold text-muted">Quantity</div>
+              <div className="mb-1.5 text-xs font-semibold text-muted">{t("common.quantity")}</div>
               <input
                 className="num w-full rounded-xl border border-border bg-transparent px-3.5 py-3 text-sm font-semibold"
                 value={quantity}
@@ -273,62 +271,61 @@ export function DashboardPage() {
 
             {orderType === "LIMIT" && (
               <label className="block">
-                <div className="mb-1.5 text-xs font-semibold text-muted">Limit price (USD)</div>
+                <div className="mb-1.5 text-xs font-semibold text-muted">{t("dashboard.limitPrice")}</div>
                 <input
                   className="num w-full rounded-xl border border-border bg-transparent px-3.5 py-3 text-sm font-semibold"
                   value={limitPrice}
                   onChange={(e) => setLimitPrice(e.target.value)}
-                  placeholder="e.g. 65000"
+                  placeholder={t("dashboard.limitPricePlaceholder")}
                 />
               </label>
             )}
 
             <Button type="submit">
-              {side === "BUY" ? "Buy" : "Sell"} {asset}
+              {t(side === "BUY" ? "dashboard.buyAsset" : "dashboard.sellAsset", { asset })}
             </Button>
 
-            {orderType === "LIMIT" && (
-              <p className="text-xs text-muted">Limit orders fill on a ~5 min sweep, not instantly on price cross.</p>
-            )}
+            {orderType === "LIMIT" && <p className="text-xs text-muted">{t("dashboard.limitNote")}</p>}
             {message && <p className="text-sm">{message}</p>}
           </form>
         </Card>
         </Reveal>
       </div>
 
-      {/* RECENT ACTIVITY */}
       <Reveal delay={200}>
       {loadError && loadError !== "not-logged-in" ? (
         <ErrorState message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : (
         <Card>
-          <div className="mb-3 text-base font-bold">Recent activity</div>
+          <div className="mb-3 text-base font-bold">{t("dashboard.recentActivity")}</div>
           {loadError === "not-logged-in" && (
             <EmptyState
-              title="Log in to see your activity"
-              body="Your demo balance and trade history live behind an account."
-              action={<Link to="/login"><Button>Log in</Button></Link>}
+              title={t("dashboard.loginToSeeActivity")}
+              body={t("dashboard.activityBehindAccount")}
+              action={<Link to="/login"><Button>{t("common.login")}</Button></Link>}
             />
           )}
           {trades && trades.length === 0 && (
-            <EmptyState title="No trades yet" body="Place your first order above to see it here." />
+            <EmptyState title={t("dashboard.noTradesYet")} body={t("dashboard.placeFirstOrderAbove")} />
           )}
           {trades && trades.length > 0 && (
             <div className="flex flex-col">
-              {trades.slice(0, 6).map((t) => (
+              {trades.slice(0, 6).map((trade) => (
                 <div
-                  key={t.id}
+                  key={trade.id}
                   className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border py-3 first:border-t-0"
                 >
-                  <Badge tone={t.side === "BUY" ? "positive" : "negative"}>{t.side === "BUY" ? "Buy" : "Sell"}</Badge>
-                  <AssetIcon asset={t.asset} />
-                  <span className="text-sm font-bold">{t.asset}</span>
+                  <Badge tone={trade.side === "BUY" ? "positive" : "negative"}>
+                    {trade.side === "BUY" ? t("common.buy") : t("common.sell")}
+                  </Badge>
+                  <AssetIcon asset={trade.asset} />
+                  <span className="text-sm font-bold">{trade.asset}</span>
                   <span className="num min-w-0 flex-1 truncate text-sm text-muted">
-                    {formatUnits(t.quantity)} {t.asset}
+                    {formatUnits(trade.quantity)} {trade.asset}
                   </span>
-                  <span className="num text-sm font-bold">{formatCents(t.priceCents)}</span>
+                  <span className="num text-sm font-bold">{formatCents(trade.priceCents)}</span>
                   <span className="text-right text-xs text-muted">
-                    {new Date(t.executedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {new Date(trade.executedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
               ))}

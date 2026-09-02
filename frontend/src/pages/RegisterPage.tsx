@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch, setToken } from "../lib/api.js";
+import { useLanguage } from "../lib/i18n/index.js";
 import { Card } from "../components/Card.js";
 import { Button } from "../components/Button.js";
 import { Reveal } from "../components/Reveal.js";
 import { PasswordInput } from "../components/PasswordInput.js";
 
 export function RegisterPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -26,7 +28,7 @@ export function RegisterPage() {
       setToken(token);
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      setError(err instanceof Error ? err.message : t("auth.registrationFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -42,13 +44,13 @@ export function RegisterPage() {
               <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold">Create your account</h1>
-          <p className="mt-1 text-sm text-muted">You'll start with a $10,000 demo balance. No real money, ever.</p>
+          <h1 className="text-xl font-bold">{t("register.title")}</h1>
+          <p className="mt-1 text-sm text-muted">{t("register.subtitle")}</p>
         </div>
 
         <form className="space-y-4" onSubmit={submit}>
           <label className="block">
-            <div className="mb-1.5 text-xs font-semibold text-muted">Display name</div>
+            <div className="mb-1.5 text-xs font-semibold text-muted">{t("register.displayName")}</div>
             <input
               className="w-full rounded-xl border border-border bg-transparent px-3.5 py-3 text-sm outline-none transition-colors focus:border-accent"
               autoComplete="nickname"
@@ -57,7 +59,7 @@ export function RegisterPage() {
             />
           </label>
           <label className="block">
-            <div className="mb-1.5 text-xs font-semibold text-muted">Email</div>
+            <div className="mb-1.5 text-xs font-semibold text-muted">{t("auth.email")}</div>
             <input
               className="w-full rounded-xl border border-border bg-transparent px-3.5 py-3 text-sm outline-none transition-colors focus:border-accent"
               type="email"
@@ -67,7 +69,7 @@ export function RegisterPage() {
             />
           </label>
           <label className="block">
-            <div className="mb-1.5 text-xs font-semibold text-muted">Password</div>
+            <div className="mb-1.5 text-xs font-semibold text-muted">{t("auth.password")}</div>
             <PasswordInput
               autoComplete="new-password"
               value={password}
@@ -87,14 +89,14 @@ export function RegisterPage() {
           )}
 
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? "Creating account…" : "Create account"}
+            {submitting ? t("register.submitting") : t("register.submit")}
           </Button>
         </form>
 
         <p className="mt-5 text-center text-sm text-muted">
-          Already have an account?{" "}
+          {t("register.haveAccount")}{" "}
           <Link to="/login" className="font-semibold text-fg hover:text-accent">
-            Log in
+            {t("register.loginLink")}
           </Link>
         </p>
       </Card>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch, getToken } from "../lib/api.js";
+import { useLanguage } from "../lib/i18n/index.js";
 import { formatCents, formatUnits } from "../lib/format.js";
 import { Card } from "../components/Card.js";
 import { Badge } from "../components/Badge.js";
@@ -18,6 +19,7 @@ interface PortfolioData {
 }
 
 export function PortfolioPage() {
+  const { t } = useLanguage();
   const [data, setData] = useState<PortfolioData | null>(null);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,22 +33,22 @@ export function PortfolioPage() {
     setError(null);
     apiFetch<PortfolioData>("/portfolio")
       .then(setData)
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
+      .catch((err) => setError(err instanceof Error ? err.message : t("common.failedToLoad")));
   }, [retryKey]);
 
   if (notLoggedIn) {
     return (
       <Card className="mt-2">
         <EmptyState
-          title="Log in to see your portfolio"
-          body="Your demo balance and positions live behind an account."
-          action={<Link to="/login"><Button>Log in</Button></Link>}
+          title={t("portfolio.loginToSee")}
+          body={t("portfolio.behindAccount")}
+          action={<Link to="/login"><Button>{t("common.login")}</Button></Link>}
         />
       </Card>
     );
   }
   if (error) return <ErrorState message={error} onRetry={() => setRetryKey((k) => k + 1)} />;
-  if (!data) return <p className="pt-6 text-muted">Loading…</p>;
+  if (!data) return <p className="pt-6 text-muted">{t("common.loading")}</p>;
 
   const pnl = Number(data.totalPnlCents);
 
@@ -54,11 +56,11 @@ export function PortfolioPage() {
     <div className="space-y-6 pt-2">
       <Reveal className="flex flex-wrap gap-x-8 gap-y-4">
         <div className="min-w-0">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">Balance</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t("portfolio.balance")}</div>
           <div className="num mt-1 break-all text-2xl font-bold sm:text-3xl">{formatCents(data.balanceCents)}</div>
         </div>
         <div className="min-w-0">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">Total P&amp;L</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted">{t("dashboard.totalPnl")}</div>
           <div className={`num mt-1 break-all text-2xl font-bold sm:text-3xl ${pnl >= 0 ? "text-positive" : "text-negative"}`}>
             {formatCents(data.totalPnlCents)}
           </div>
@@ -68,15 +70,15 @@ export function PortfolioPage() {
       <Reveal delay={80}>
       <Card>
         {data.positions.length === 0 ? (
-          <EmptyState title="No open positions yet" body="Place a trade on the dashboard to see it here." />
+          <EmptyState title={t("portfolio.noPositions")} body={t("portfolio.placeTradeToSee")} />
         ) : (
           <>
             <table className="hidden w-full text-left text-sm sm:table">
               <thead className="text-xs font-semibold uppercase tracking-wide text-muted">
                 <tr>
-                  <th className="pb-3">Asset</th>
-                  <th className="pb-3">Quantity</th>
-                  <th className="pb-3">Market value</th>
+                  <th className="pb-3">{t("common.asset")}</th>
+                  <th className="pb-3">{t("common.quantity")}</th>
+                  <th className="pb-3">{t("portfolio.marketValue")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,7 +97,6 @@ export function PortfolioPage() {
               </tbody>
             </table>
 
-            {/* Mobile: three columns still get tight next to a long dollar value — stack instead. */}
             <div className="flex flex-col sm:hidden">
               {data.positions.map((p) => (
                 <div key={p.asset} className="flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-border py-3 first:border-t-0">
@@ -110,7 +111,11 @@ export function PortfolioPage() {
         )}
       </Card>
       </Reveal>
-      {pnl !== 0 && <Badge tone={pnl >= 0 ? "positive" : "negative"}>{pnl >= 0 ? "Up" : "Down"} overall</Badge>}
+      {pnl !== 0 && (
+        <Badge tone={pnl >= 0 ? "positive" : "negative"}>
+          {pnl >= 0 ? t("portfolio.up") : t("portfolio.down")} {t("portfolio.overall")}
+        </Badge>
+      )}
     </div>
   );
 }

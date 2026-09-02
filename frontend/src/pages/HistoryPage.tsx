@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch, getToken } from "../lib/api.js";
+import { useLanguage } from "../lib/i18n/index.js";
 import { formatCents, formatUnits } from "../lib/format.js";
 import { Card } from "../components/Card.js";
 import { Badge } from "../components/Badge.js";
@@ -21,6 +22,7 @@ interface Trade {
 }
 
 export function HistoryPage() {
+  const { t } = useLanguage();
   const [trades, setTrades] = useState<Trade[] | null>(null);
   const [notLoggedIn, setNotLoggedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,73 +36,74 @@ export function HistoryPage() {
     setError(null);
     apiFetch<Trade[]>("/trades")
       .then(setTrades)
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
+      .catch((err) => setError(err instanceof Error ? err.message : t("common.failedToLoad")));
   }, [retryKey]);
 
   if (notLoggedIn) {
     return (
       <Card className="mt-2">
         <EmptyState
-          title="Log in to see your trade history"
-          body="Your fills live behind an account."
-          action={<Link to="/login"><Button>Log in</Button></Link>}
+          title={t("history.loginToSee")}
+          body={t("history.behindAccount")}
+          action={<Link to="/login"><Button>{t("common.login")}</Button></Link>}
         />
       </Card>
     );
   }
   if (error) return <ErrorState message={error} onRetry={() => setRetryKey((k) => k + 1)} />;
-  if (!trades) return <p className="pt-6 text-muted">Loading…</p>;
+  if (!trades) return <p className="pt-6 text-muted">{t("common.loading")}</p>;
 
   return (
     <Reveal>
     <Card className="mt-2">
       {trades.length === 0 ? (
-        <EmptyState title="No trades yet" body="Place your first order on the dashboard to see it here." />
+        <EmptyState title={t("history.noTrades")} body={t("history.placeFirstOrder")} />
       ) : (
         <>
-          {/* Desktop: full table — plenty of width for five columns. */}
           <table className="hidden w-full text-left text-sm md:table">
             <thead className="text-xs font-semibold uppercase tracking-wide text-muted">
               <tr>
-                <th className="pb-3">Date</th>
-                <th className="pb-3">Asset</th>
-                <th className="pb-3">Side</th>
-                <th className="pb-3">Quantity</th>
-                <th className="pb-3">Price</th>
+                <th className="pb-3">{t("history.date")}</th>
+                <th className="pb-3">{t("common.asset")}</th>
+                <th className="pb-3">{t("history.side")}</th>
+                <th className="pb-3">{t("common.quantity")}</th>
+                <th className="pb-3">{t("history.price")}</th>
               </tr>
             </thead>
             <tbody>
-              {trades.map((t) => (
-                <tr key={t.id} className="border-t border-border">
-                  <td className="py-3 text-muted">{new Date(t.executedAt).toLocaleString()}</td>
+              {trades.map((trade) => (
+                <tr key={trade.id} className="border-t border-border">
+                  <td className="py-3 text-muted">{new Date(trade.executedAt).toLocaleString()}</td>
                   <td className="py-3">
                     <div className="flex items-center gap-2 font-bold">
-                      <AssetIcon asset={t.asset} size={20} />
-                      {t.asset}
+                      <AssetIcon asset={trade.asset} size={20} />
+                      {trade.asset}
                     </div>
                   </td>
                   <td className="py-3">
-                    <Badge tone={t.side === "BUY" ? "positive" : "negative"}>{t.side === "BUY" ? "Buy" : "Sell"}</Badge>
+                    <Badge tone={trade.side === "BUY" ? "positive" : "negative"}>
+                      {trade.side === "BUY" ? t("common.buy") : t("common.sell")}
+                    </Badge>
                   </td>
-                  <td className="num py-3">{formatUnits(t.quantity)}</td>
-                  <td className="num py-3 font-semibold">{formatCents(t.priceCents)}</td>
+                  <td className="num py-3">{formatUnits(trade.quantity)}</td>
+                  <td className="num py-3 font-semibold">{formatCents(trade.priceCents)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          {/* Mobile: five columns don't fit side by side at this width — stack each trade as a
-              two-line row instead of squeezing a table (which used to run headers/values together). */}
           <div className="flex flex-col md:hidden">
-            {trades.map((t) => (
-              <div key={t.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 border-t border-border py-3 first:border-t-0">
-                <Badge tone={t.side === "BUY" ? "positive" : "negative"}>{t.side === "BUY" ? "Buy" : "Sell"}</Badge>
-                <AssetIcon asset={t.asset} size={20} />
-                <span className="text-sm font-bold">{t.asset}</span>
-                <span className="num ml-auto text-sm font-semibold">{formatCents(t.priceCents)}</span>
+            {trades.map((trade) => (
+              <div key={trade.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 border-t border-border py-3 first:border-t-0">
+                <Badge tone={trade.side === "BUY" ? "positive" : "negative"}>
+                  {trade.side === "BUY" ? t("common.buy") : t("common.sell")}
+                </Badge>
+                <AssetIcon asset={trade.asset} size={20} />
+                <span className="text-sm font-bold">{trade.asset}</span>
+                <span className="num ml-auto text-sm font-semibold">{formatCents(trade.priceCents)}</span>
                 <div className="flex w-full items-center justify-between text-xs text-muted">
-                  <span className="num">{formatUnits(t.quantity)} {t.asset}</span>
-                  <span>{new Date(t.executedAt).toLocaleString()}</span>
+                  <span className="num">{formatUnits(trade.quantity)} {trade.asset}</span>
+                  <span>{new Date(trade.executedAt).toLocaleString()}</span>
                 </div>
               </div>
             ))}

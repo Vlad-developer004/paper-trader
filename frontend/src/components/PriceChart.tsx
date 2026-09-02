@@ -3,11 +3,8 @@ import { createChart, ColorType, CrosshairMode } from "lightweight-charts";
 import type { IChartApi, ISeriesApi, UTCTimestamp } from "lightweight-charts";
 import { usePriceFeed, type AssetSymbol } from "../lib/binanceSocket.js";
 import { fetchKlines, type Candle } from "../lib/klines.js";
+import { useLanguage } from "../lib/i18n/index.js";
 
-// lightweight-charts validates color strings itself and rejects oklch() (it only recognizes
-// rgb/rgba/hex/hsl), even though the app's design tokens are oklch throughout. Resolve each
-// token to rgb by actually painting it on a throwaway canvas and reading the pixel back — that
-// reuses the browser's real color-space conversion instead of hand-rolling oklch->rgb math.
 let probeCanvas: HTMLCanvasElement | null = null;
 function toRgb(cssColor: string): string {
   probeCanvas ??= document.createElement("canvas");
@@ -25,6 +22,7 @@ function readColor(varName: string) {
 }
 
 export function PriceChart({ asset }: { asset: AssetSymbol }) {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -33,8 +31,6 @@ export function PriceChart({ asset }: { asset: AssetSymbol }) {
 
   const price = usePriceFeed((s) => s.prices[asset]);
 
-  // Chart instance — created once, restyled in place on theme change and resized on layout change,
-  // never recreated (that would drop the smooth zoom/pan state and cost more to redraw).
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -75,8 +71,6 @@ export function PriceChart({ asset }: { asset: AssetSymbol }) {
     });
     resizeObserver.observe(container);
 
-    // Restyle on theme toggle — cheaper than recreating the whole chart, and the toggle only
-    // flips the `dark` class on <html>, so a class-attribute observer is all this needs.
     const themeObserver = new MutationObserver(() => {
       chart.applyOptions({
         layout: { textColor: readColor("--color-muted") },
@@ -102,8 +96,6 @@ export function PriceChart({ asset }: { asset: AssetSymbol }) {
     };
   }, []);
 
-  // History — reload whenever the selected asset changes, and drop any in-progress live bucket
-  // from the previous asset so it can't leak onto the new series.
   useEffect(() => {
     let cancelled = false;
     bucketRef.current = null;
@@ -113,6 +105,7 @@ export function PriceChart({ asset }: { asset: AssetSymbol }) {
         if (cancelled || !seriesRef.current) return;
         seriesRef.current.setData(candles);
         chartRef.current?.timeScale().fitContent();
+        chartRef.current?.priceScale("right").applyOptions({ autoScale: true });
         bucketRef.current = candles[candles.length - 1] ?? null;
         setStatus("ready");
       })
@@ -124,8 +117,6 @@ export function PriceChart({ asset }: { asset: AssetSymbol }) {
     };
   }, [asset]);
 
-  // Live ticks — fold each trade price from the shared WS feed into the current minute's candle,
-  // opening a fresh one when the minute rolls over.
   useEffect(() => {
     if (price === undefined || !seriesRef.current) return;
     const bucketTime = (Math.floor(Date.now() / 60_000) * 60) as UTCTimestamp;
@@ -146,12 +137,10 @@ export function PriceChart({ asset }: { asset: AssetSymbol }) {
     <div className="relative">
       <div ref={containerRef} className="h-[220px] w-full" />
       {status === "loading" && (
-        <div className="absolute inset-0 flex items-center justify-center text-sm text-muted">Loading chart…</div>
+        <div className="absolute inset-0 flex items-center justify-center text-sm text-muted">{t("chart.loading")}</div>
       )}
       {status === "error" && (
-        <div className="absolute inset-0 flex items-center justify-center text-sm text-muted">
-          Couldn't load chart history.
-        </div>
+        <div className="absolute inset-0 flex items-center justify-center text-sm text-muted">{t("chart.error")}</div>
       )}
     </div>
   );

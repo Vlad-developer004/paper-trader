@@ -1,7 +1,9 @@
 import { useState, type InputHTMLAttributes } from "react";
+import { useLanguage } from "../lib/i18n/index.js";
 
 export function PasswordInput({ className = "", ...props }: InputHTMLAttributes<HTMLInputElement>) {
   const [visible, setVisible] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <div className="relative">
@@ -14,7 +16,7 @@ export function PasswordInput({ className = "", ...props }: InputHTMLAttributes<
         type="button"
         onClick={() => setVisible((v) => !v)}
         className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted hover:text-fg"
-        aria-label={visible ? "Hide password" : "Show password"}
+        aria-label={visible ? t("a11y.hidePassword") : t("a11y.showPassword")}
         tabIndex={-1}
       >
         {visible ? (

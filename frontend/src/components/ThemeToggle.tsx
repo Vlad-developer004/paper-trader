@@ -1,13 +1,15 @@
 import { useTheme } from "../lib/theme.js";
+import { useLanguage } from "../lib/i18n/index.js";
 
 export function ThemeToggle() {
   const { theme, toggle } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label="Toggle color theme"
+      aria-label={t("a11y.toggleTheme")}
       className="flex h-9 w-9 items-center justify-center rounded-lg bg-card border border-border text-fg"
     >
       {theme === "light" ? (

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 import { connectPriceFeed } from "./lib/binanceSocket.js";
+import { useLanguage, type TranslationKey } from "./lib/i18n/index.js";
 import { DashboardPage } from "./pages/DashboardPage.js";
 import { PortfolioPage } from "./pages/PortfolioPage.js";
 import { HistoryPage } from "./pages/HistoryPage.js";
@@ -10,18 +11,21 @@ import { RegisterPage } from "./pages/RegisterPage.js";
 import { Logo } from "./components/Logo.js";
 import { Avatar } from "./components/Avatar.js";
 import { ThemeToggle } from "./components/ThemeToggle.js";
+import { LanguageSwitcher } from "./components/LanguageSwitcher.js";
 import { DisclaimerBanner } from "./components/DisclaimerBanner.js";
 import { Footer } from "./components/Footer.js";
 import { BottomTabBar } from "./components/BottomTabBar.js";
 
-const navLinks = [
-  { to: "/", label: "Dashboard", end: true },
-  { to: "/portfolio", label: "Portfolio" },
-  { to: "/history", label: "History" },
-  { to: "/leaderboard", label: "Leaderboard" },
+const navLinks: { to: string; labelKey: TranslationKey; end?: boolean }[] = [
+  { to: "/", labelKey: "nav.dashboard", end: true },
+  { to: "/portfolio", labelKey: "nav.portfolio" },
+  { to: "/history", labelKey: "nav.history" },
+  { to: "/leaderboard", labelKey: "nav.leaderboard" },
 ];
 
 export default function App() {
+  const { t } = useLanguage();
+
   useEffect(() => {
     connectPriceFeed();
   }, []);
@@ -45,12 +49,13 @@ export default function App() {
                 }`
               }
             >
-              {link.label}
+              {t(link.labelKey)}
             </NavLink>
           ))}
         </div>
 
         <div className="ml-auto flex items-center gap-3.5">
+          <LanguageSwitcher />
           <ThemeToggle />
           <NavLink to="/login">
             <Avatar />

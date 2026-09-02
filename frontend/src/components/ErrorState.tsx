@@ -1,7 +1,9 @@
 import { Card } from "./Card.js";
 import { Button } from "./Button.js";
+import { useLanguage } from "../lib/i18n/index.js";
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const { t } = useLanguage();
   return (
     <Card className="mt-2">
       <div className="flex flex-col items-center gap-3 py-8 text-center">
@@ -11,12 +13,12 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
           <circle cx="12" cy="16" r="1.1" fill="currentColor" />
         </svg>
         <div>
-          <div className="font-bold">Something went wrong</div>
+          <div className="font-bold">{t("common.somethingWrong")}</div>
           <div className="mt-1 text-sm text-muted">{message}</div>
         </div>
         {onRetry && (
           <Button variant="secondary" onClick={onRetry}>
-            Try again
+            {t("common.tryAgain")}
           </Button>
         )}
       </div>

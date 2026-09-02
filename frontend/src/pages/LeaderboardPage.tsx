@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../lib/api.js";
+import { useLanguage } from "../lib/i18n/index.js";
 import { formatCents } from "../lib/format.js";
 import { Card } from "../components/Card.js";
 import { Badge } from "../components/Badge.js";
@@ -13,6 +14,7 @@ interface LeaderboardEntry {
 }
 
 export function LeaderboardPage() {
+  const { t } = useLanguage();
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
@@ -21,17 +23,17 @@ export function LeaderboardPage() {
     setError(null);
     apiFetch<LeaderboardEntry[]>("/leaderboard")
       .then(setEntries)
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load"));
+      .catch((err) => setError(err instanceof Error ? err.message : t("common.failedToLoad")));
   }, [retryKey]);
 
   if (error) return <ErrorState message={error} onRetry={() => setRetryKey((k) => k + 1)} />;
-  if (!entries) return <p className="pt-6 text-muted">Loading…</p>;
+  if (!entries) return <p className="pt-6 text-muted">{t("common.loading")}</p>;
 
   return (
     <div className="mt-2 space-y-2">
       {entries.length === 0 ? (
         <Card>
-          <EmptyState title="No traders yet" body="Be the first on the board." />
+          <EmptyState title={t("leaderboard.noTraders")} body={t("leaderboard.beFirst")} />
         </Card>
       ) : (
         entries.map((e, i) => {

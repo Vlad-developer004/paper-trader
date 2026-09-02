@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch, setToken } from "../lib/api.js";
+import { useLanguage } from "../lib/i18n/index.js";
 import { Card } from "../components/Card.js";
 import { Button } from "../components/Button.js";
 import { Reveal } from "../components/Reveal.js";
 import { PasswordInput } from "../components/PasswordInput.js";
 
 export function LoginPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export function LoginPage() {
       setToken(token);
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : t("auth.loginFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -41,13 +43,13 @@ export function LoginPage() {
               <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold">Welcome back</h1>
-          <p className="mt-1 text-sm text-muted">Log in to trade your demo portfolio.</p>
+          <h1 className="text-xl font-bold">{t("login.title")}</h1>
+          <p className="mt-1 text-sm text-muted">{t("login.subtitle")}</p>
         </div>
 
         <form className="space-y-4" onSubmit={submit}>
           <label className="block">
-            <div className="mb-1.5 text-xs font-semibold text-muted">Email</div>
+            <div className="mb-1.5 text-xs font-semibold text-muted">{t("auth.email")}</div>
             <input
               className="w-full rounded-xl border border-border bg-transparent px-3.5 py-3 text-sm outline-none transition-colors focus:border-accent"
               type="email"
@@ -57,7 +59,7 @@ export function LoginPage() {
             />
           </label>
           <label className="block">
-            <div className="mb-1.5 text-xs font-semibold text-muted">Password</div>
+            <div className="mb-1.5 text-xs font-semibold text-muted">{t("auth.password")}</div>
             <PasswordInput
               autoComplete="current-password"
               value={password}
@@ -77,14 +79,14 @@ export function LoginPage() {
           )}
 
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? "Logging in…" : "Log in"}
+            {submitting ? t("login.submitting") : t("login.submit")}
           </Button>
         </form>
 
         <p className="mt-5 text-center text-sm text-muted">
-          Don't have an account?{" "}
+          {t("login.noAccount")}{" "}
           <Link to="/register" className="font-semibold text-fg hover:text-accent">
-            Register
+            {t("login.registerLink")}
           </Link>
         </p>
       </Card>
