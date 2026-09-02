@@ -1,5 +1,11 @@
+// Must be imported before any router: patches Express 4's route handlers so a rejected promise
+// (e.g. an unvalidated query value that makes Prisma throw) reaches the error middleware below
+// instead of just hanging the request until the platform timeout.
+import "express-async-errors";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { env } from "./lib/env.js";
 import { authRouter } from "./routes/auth.js";
 import { meRouter } from "./routes/me.js";
 import { ordersRouter } from "./routes/orders.js";
@@ -11,7 +17,16 @@ import { internalRouter } from "./routes/internal.js";
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  // Both the Vercel serverless deployment and local `vite` proxy sit in front of this app —
+  // trust the first hop's X-Forwarded-For so express-rate-limit (auth.ts) keys on the real
+  // client IP instead of the proxy's.
+  app.set("trust proxy", 1);
+
+  app.use(helmet());
+  // No cookies are ever set (bearer-token auth), so a same-site CSP default is safe; the frontend
+  // is same-origin in production (one Vercel project) and cross-origin only in local dev, where
+  // env.frontendOrigins is unset and any origin is allowed.
+  app.use(cors(env.frontendOrigins ? { origin: env.frontendOrigins } : {}));
   app.use(express.json());
 
   // BigInt columns (cents/minor-units) can't go through native JSON.stringify — serialize them

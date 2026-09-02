@@ -1,9 +1,21 @@
 import { Router } from "express";
 import { z } from "zod";
+import rateLimit from "express-rate-limit";
 import { prisma } from "../lib/prisma.js";
 import { hashPassword, signToken, verifyPassword } from "../lib/auth.js";
 
 export const authRouter = Router();
+
+// Both routes are unlimited-guess/unlimited-account-creation surfaces without this: password
+// brute force against a known email, and mass fake accounts polluting the public leaderboard.
+// Keyed by IP (express-rate-limit's default), which is enough for a portfolio-scale deployment.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Too many attempts. Please try again later." },
+});
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -11,7 +23,7 @@ const registerSchema = z.object({
   displayName: z.string().min(1).max(60),
 });
 
-authRouter.post("/register", async (req, res) => {
+authRouter.post("/register", authLimiter, async (req, res) => {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" });
@@ -35,7 +47,7 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-authRouter.post("/login", async (req, res) => {
+authRouter.post("/login", authLimiter, async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ success: false, error: "Invalid input" });

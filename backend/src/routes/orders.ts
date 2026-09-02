@@ -78,10 +78,15 @@ ordersRouter.delete("/:id", async (req, res) => {
   }
 });
 
+const statusQuerySchema = z.enum(["PENDING", "FILLED", "CANCELLED"]).optional();
+
 ordersRouter.get("/", async (req, res) => {
-  const status = typeof req.query.status === "string" ? req.query.status : undefined;
+  const parsed = statusQuerySchema.safeParse(req.query.status);
+  if (!parsed.success) {
+    return res.status(400).json({ success: false, error: "Invalid status filter" });
+  }
   const orders = await prisma.order.findMany({
-    where: { userId: req.userId!, ...(status ? { status: status as never } : {}) },
+    where: { userId: req.userId!, ...(parsed.data ? { status: parsed.data } : {}) },
     orderBy: { createdAt: "desc" },
     include: { trade: true },
   });
