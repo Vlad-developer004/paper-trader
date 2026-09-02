@@ -1,0 +1,15 @@
+name: Check limit order fills
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger fill sweep
+        run: |
+          curl -sf -X POST "${{ secrets.PAPER_TRADER_API_URL }}/api/internal/check-fills" \
+            -H "x-cron-secret: ${{ secrets.PAPER_TRADER_CRON_SECRET }}"

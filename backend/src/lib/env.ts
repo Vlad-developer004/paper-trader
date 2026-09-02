@@ -1,0 +1,11 @@
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing required env var: ${name}`);
+  return value;
+}
+
+export const env = {
+  jwtSecret: required("JWT_SECRET"),
+  internalCronSecret: required("INTERNAL_CRON_SECRET"),
+  coingeckoApiUrl: process.env.COINGECKO_API_URL ?? "https://api.coingecko.com/api/v3",
+};

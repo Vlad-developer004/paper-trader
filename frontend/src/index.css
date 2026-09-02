@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: oklch(0.97 0.014 70);
+  --color-card: oklch(1 0 0);
+  --color-fg: oklch(0.22 0.02 55);
+  --color-muted: oklch(0.5 0.02 55);
+  --color-border: oklch(0.91 0.015 70);
+  --color-accent: oklch(0.7 0.16 40);
+  --color-positive: oklch(0.42 0.13 155);
+  --color-positive-bg: oklch(0.93 0.07 150);
+  --color-negative: oklch(0.45 0.13 30);
+  --color-negative-bg: oklch(0.94 0.06 30);
+  --color-btc: oklch(0.72 0.16 55);
+  --color-eth: oklch(0.6 0.1 260);
+  --color-sol: oklch(0.68 0.16 300);
+}
+
+.dark {
+  --color-bg: oklch(0.16 0.012 250);
+  --color-card: oklch(0.205 0.013 250);
+  --color-fg: oklch(0.95 0.006 250);
+  --color-muted: oklch(0.64 0.014 250);
+  --color-border: oklch(0.3 0.016 250);
+  --color-accent: oklch(0.72 0.16 40);
+  --color-positive: oklch(0.78 0.13 160);
+  --color-positive-bg: oklch(0.27 0.05 160);
+  --color-negative: oklch(0.78 0.13 25);
+  --color-negative-bg: oklch(0.27 0.05 25);
+  --color-btc: oklch(0.72 0.16 55);
+  --color-eth: oklch(0.6 0.1 260);
+  --color-sol: oklch(0.68 0.16 300);
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: "Sora", system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  will-change: opacity, transform;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

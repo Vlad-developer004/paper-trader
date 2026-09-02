@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Asset {
+  BTC
+  ETH
+  SOL
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  createdAt    DateTime @default(now())
+
+  // starting demo balance: $10,000.00
+  balanceCents BigInt @default(1000000)
+
+  positions Position[]
+  orders    Order[]
+  trades    Trade[]
+}
+
+model Position {
+  id             String @id @default(cuid())
+  userId         String
+  asset          Asset
+  // held quantity, 1e8 minor-units per coin (satoshi-style), never negative (no shorting in v1)
+  quantity       BigInt @default(0)
+  // cost basis in cents, for realized/unrealized PnL calc
+  costBasisCents BigInt @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, asset])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  asset           Asset
+  side            OrderSide
+  type            OrderType
+  status          OrderStatus @default(PENDING)
+  quantity        BigInt
+  limitPriceCents BigInt?
+  createdAt       DateTime    @default(now())
+  filledAt        DateTime?
+  cancelledAt     DateTime?
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trade Trade?
+
+  @@index([userId])
+  @@index([status, asset])
+}
+
+model Trade {
+  id         String    @id @default(cuid())
+  orderId    String    @unique
+  userId     String
+  asset      Asset
+  side       OrderSide
+  quantity   BigInt
+  priceCents BigInt
+  executedAt DateTime  @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, executedAt])
+}

@@ -1,0 +1,16 @@
+{
+  "name": "paper-trader",
+  "private": true,
+  "type": "module",
+  "workspaces": ["backend", "frontend"],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=frontend",
+    "typecheck": "npm run typecheck --workspace=backend && npm run build --workspace=frontend -- --mode typecheck",
+    "test": "npm run test --workspace=backend"
+  },
+  "dependencies": {
+    "serverless-http": "^3.2.0"
+  }
+}
