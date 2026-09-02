@@ -9,16 +9,17 @@ See `docs` in the plan history for the full architecture rationale. Short versio
 
 - **Frontend**: Vite + React + TypeScript + Tailwind, connects directly to Binance's public
   WebSocket for live prices — the backend is never touched for streaming.
-- **Backend**: Express + TypeScript + Prisma, deployed as a single Vercel serverless function
-  (`api/[...path].ts`) alongside the frontend — same codebase, `npm run dev:backend` also runs it
-  as a normal long-lived process locally.
+- **Backend**: Express + TypeScript + Prisma, deployed as its own Vercel Service (`vercel.json`'s
+  `services.backend`, bundled to `dist/server.mjs` at deploy time) alongside the frontend service
+  — same codebase, `npm run dev:backend` runs the same entry point locally.
 - **DB**: Postgres (Neon), scale-to-zero on the free tier.
 - **Precision**: money in integer cents, crypto quantities in 1e8 minor-units — no floats
   anywhere near balance/price/PnL math.
-- **Limit orders**: fill on a ~5 minute sweep triggered by a GitHub Actions scheduled workflow
-  (`.github/workflows/fill-check.yml`), not instantly on price cross — serverless functions have
-  no persistent process to run an in-process cron. This is a deliberate, documented trade-off,
-  not a bug.
+- **Limit orders**: fill on a ~5 minute `setInterval` sweep inside the backend process
+  (`backend/src/server.ts`), not instantly on price cross. Because the backend now runs as a
+  warm process (Vercel Fluid compute) instead of a cold-per-request function, the sweep only
+  ticks while a real visitor has kept an instance alive, and costs nothing while idle — no
+  external scheduler needed. `.github/workflows/fill-check.yml` is kept as a manual-only fallback.
 
 ## Local development
 

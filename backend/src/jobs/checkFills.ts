@@ -9,10 +9,13 @@ import { crossesLimit } from "../lib/limitOrder.js";
 // cron — see .github/workflows/fill-check.yml. Limit orders therefore fill on a ~5 min sweep, not
 // instantly on price cross; documented as a deliberate, honest scoping trade-off.
 export async function checkFills(): Promise<{ checked: number; filled: number; skipped: number }> {
-  const prices = await getVerifiedPricesCents();
   const pending = await prisma.order.findMany({
     where: { status: "PENDING", type: "LIMIT" },
   });
+  // Nothing to check — skip the CoinGecko round-trip entirely rather than pricing an empty sweep.
+  if (pending.length === 0) return { checked: 0, filled: 0, skipped: 0 };
+
+  const prices = await getVerifiedPricesCents();
 
   let filled = 0;
   let skipped = 0;

@@ -4,3 +4,5 @@ dist/
 .env.local
 backend/src/generated/
 .vercel/
+
+.vercel

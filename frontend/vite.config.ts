@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       // local dev only — production calls /api on the same Vercel origin, no proxy needed there
-      "/api": { target: "http://localhost:3001", changeOrigin: true, rewrite: (p) => p.replace(/^\/api/, "") },
+      "/api": { target: "http://localhost:3001", changeOrigin: true },
     },
   },
 });

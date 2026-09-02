@@ -33,15 +33,20 @@ export function createApp() {
   // as decimal strings at the API boundary, the frontend never parses a raw float for money.
   app.set("json replacer", (_key: string, value: unknown) => (typeof value === "bigint" ? value.toString() : value));
 
-  app.get("/health", (_req, res) => res.json({ success: true, data: { status: "ok" } }));
+  // Mounted under /api — Vercel routes the whole /api/(.*) prefix to this service without
+  // stripping it, and the same prefix is used unmodified by the local Vite dev proxy.
+  const api = express.Router();
+  api.get("/health", (_req, res) => res.json({ success: true, data: { status: "ok" } }));
 
-  app.use("/auth", authRouter);
-  app.use("/me", meRouter);
-  app.use("/orders", ordersRouter);
-  app.use("/portfolio", portfolioRouter);
-  app.use("/trades", tradesRouter);
-  app.use("/leaderboard", leaderboardRouter);
-  app.use("/internal", internalRouter);
+  api.use("/auth", authRouter);
+  api.use("/me", meRouter);
+  api.use("/orders", ordersRouter);
+  api.use("/portfolio", portfolioRouter);
+  api.use("/trades", tradesRouter);
+  api.use("/leaderboard", leaderboardRouter);
+  api.use("/internal", internalRouter);
+
+  app.use("/api", api);
 
   app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error(err);

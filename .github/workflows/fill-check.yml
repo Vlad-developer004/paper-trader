@@ -1,8 +1,9 @@
 name: Check limit order fills
 
+# Manual-only: the backend runs on Vercel Services now, a warm process that ticks its own
+# setInterval sweep (backend/src/server.ts) while a real visitor is keeping it alive, and costs
+# nothing while idle. Kept here as a manual fallback for poking the sweep on demand.
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
