@@ -91,6 +91,10 @@ export const en = {
   "leaderboard.noTraders": "No traders yet",
   "leaderboard.beFirst": "Be the first on the board.",
 
+  "account.title": "Account",
+  "account.balance": "Demo balance",
+  "account.logout": "Log out",
+
   "a11y.showPassword": "Show password",
   "a11y.hidePassword": "Hide password",
   "a11y.toggleTheme": "Toggle color theme",

@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
+
 const TOKEN_KEY = "paper-trader-token";
+const AUTH_CHANGE_EVENT = "paper-trader-auth-change";
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -6,17 +9,32 @@ export function getToken(): string | null {
 
 export function setToken(token: string) {
   localStorage.setItem(TOKEN_KEY, token);
+  window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 }
 
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
+  window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+}
+
+export function useAuthToken(): string | null {
+  const [token, setTokenState] = useState(getToken);
+
+  useEffect(() => {
+    const sync = () => setTokenState(getToken());
+    window.addEventListener(AUTH_CHANGE_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  return token;
 }
 
 type ApiResult<T> = { success: true; data: T } | { success: false; error: string };
 
-// A generic, user-facing message — never surface a raw fetch/parse exception (e.g. "Unexpected
-// end of JSON input") to the UI, since that only means something like "the backend is down" or
-// "the network dropped", not anything the user did wrong.
 const UNREACHABLE_MESSAGE = "Can't reach the server right now. Please try again in a moment.";
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {

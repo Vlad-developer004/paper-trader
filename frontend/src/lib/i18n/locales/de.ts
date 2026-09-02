@@ -93,6 +93,10 @@ export const de: Record<keyof typeof en, string> = {
   "leaderboard.noTraders": "Noch keine Trader",
   "leaderboard.beFirst": "Sei der Erste auf dem Board.",
 
+  "account.title": "Konto",
+  "account.balance": "Demo-Guthaben",
+  "account.logout": "Abmelden",
+
   "a11y.showPassword": "Passwort anzeigen",
   "a11y.hidePassword": "Passwort verbergen",
   "a11y.toggleTheme": "Farbthema umschalten",

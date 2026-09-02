@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 import { connectPriceFeed } from "./lib/binanceSocket.js";
+import { useAuthToken } from "./lib/api.js";
 import { useLanguage, type TranslationKey } from "./lib/i18n/index.js";
 import { DashboardPage } from "./pages/DashboardPage.js";
 import { PortfolioPage } from "./pages/PortfolioPage.js";
@@ -8,6 +9,7 @@ import { HistoryPage } from "./pages/HistoryPage.js";
 import { LeaderboardPage } from "./pages/LeaderboardPage.js";
 import { LoginPage } from "./pages/LoginPage.js";
 import { RegisterPage } from "./pages/RegisterPage.js";
+import { AccountPage } from "./pages/AccountPage.js";
 import { Logo } from "./components/Logo.js";
 import { Avatar } from "./components/Avatar.js";
 import { ThemeToggle } from "./components/ThemeToggle.js";
@@ -25,6 +27,7 @@ const navLinks: { to: string; labelKey: TranslationKey; end?: boolean }[] = [
 
 export default function App() {
   const { t } = useLanguage();
+  const token = useAuthToken();
 
   useEffect(() => {
     connectPriceFeed();
@@ -35,7 +38,9 @@ export default function App() {
       <DisclaimerBanner />
 
       <nav className="flex items-center gap-2 px-4 py-5 md:px-12">
-        <Logo />
+        <NavLink to="/">
+          <Logo />
+        </NavLink>
 
         <div className="ml-14 hidden gap-1 rounded-full border border-border bg-card/70 p-1.5 backdrop-blur md:flex">
           {navLinks.map((link) => (
@@ -57,7 +62,7 @@ export default function App() {
         <div className="ml-auto flex items-center gap-3.5">
           <LanguageSwitcher />
           <ThemeToggle />
-          <NavLink to="/login">
+          <NavLink to={token ? "/account" : "/login"}>
             <Avatar />
           </NavLink>
         </div>
@@ -71,6 +76,7 @@ export default function App() {
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/account" element={<AccountPage />} />
         </Routes>
       </main>
 

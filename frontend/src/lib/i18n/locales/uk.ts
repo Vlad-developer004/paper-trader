@@ -93,6 +93,10 @@ export const uk: Record<keyof typeof en, string> = {
   "leaderboard.noTraders": "Поки немає трейдерів",
   "leaderboard.beFirst": "Станьте першим у рейтингу.",
 
+  "account.title": "Акаунт",
+  "account.balance": "Демо-баланс",
+  "account.logout": "Вийти",
+
   "a11y.showPassword": "Показати пароль",
   "a11y.hidePassword": "Приховати пароль",
   "a11y.toggleTheme": "Перемкнути тему",
