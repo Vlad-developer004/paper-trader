@@ -10,8 +10,16 @@ See `docs` in the plan history for the full architecture rationale. Short versio
 - **Frontend**: Vite + React + TypeScript + Tailwind, connects directly to Binance's public
   WebSocket for live prices — the backend is never touched for streaming.
 - **Backend**: Express + TypeScript + Prisma, deployed as its own Vercel Service (`vercel.json`'s
-  `services.backend`, bundled to `dist/server.mjs` at deploy time) alongside the frontend service
-  — same codebase, `npm run dev:backend` runs the same entry point locally.
+  `services.backend`) alongside the frontend service — same codebase, `npm run dev:backend` runs
+  the same entry point locally. The service's entrypoint is a single esbuild bundle
+  (`backend/dist/server.mjs`, via `npm run vercel-build`) rather than the raw TS source, working
+  around a zero-config gap where Vercel doesn't reliably carry `"type": "module"` into the
+  deployed function. `backend/dist/server.mjs` is committed (unusual for a build artifact) because
+  Vercel checks that a service's `entrypoint` file exists in the repo *before* running its
+  `buildCommand` on a git-triggered deploy — a gitignored dist file doesn't exist yet at that
+  point and fails deploy outright. Vercel's own build still regenerates it fresh; the committed
+  copy only needs to exist, not be current — but run `npm run vercel-build --workspace=backend`
+  and commit the result after backend changes anyway, to keep it truthful for local testing.
 - **DB**: Postgres (Neon), scale-to-zero on the free tier.
 - **Precision**: money in integer cents, crypto quantities in 1e8 minor-units — no floats
   anywhere near balance/price/PnL math.

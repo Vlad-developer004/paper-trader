@@ -1,8 +1,8 @@
 node_modules/
-dist/
+frontend/dist/
+backend/dist/*
+!backend/dist/server.mjs
 .env
 .env.local
 backend/src/generated/
 .vercel/
-
-.vercel
