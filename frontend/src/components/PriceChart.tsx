@@ -126,10 +126,15 @@ export function PriceChart({ asset }: { asset: AssetSymbol }) {
       bucketRef.current = next;
       seriesRef.current.update(next);
     } else {
-      bucket.high = Math.max(bucket.high, price);
-      bucket.low = Math.min(bucket.low, price);
-      bucket.close = price;
-      seriesRef.current.update(bucket);
+      const next: Candle = {
+        time: bucket.time,
+        open: bucket.open,
+        high: Math.max(bucket.high, price),
+        low: Math.min(bucket.low, price),
+        close: price,
+      };
+      bucketRef.current = next;
+      seriesRef.current.update(next);
     }
   }, [price]);
 

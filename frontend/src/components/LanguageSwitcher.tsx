@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { LANGUAGES, useLanguage } from "../lib/i18n/index.js";
+import { FlagIcon } from "./FlagIcon.js";
 
 export function LanguageSwitcher() {
   const { lang, setLang, t } = useLanguage();
-  const current = LANGUAGES.find((l) => l.code === lang)!;
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +33,7 @@ export function LanguageSwitcher() {
         aria-label={t("a11y.language")}
         className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-xs font-bold uppercase text-fg"
       >
-        <span className="text-base leading-none">{current.flag}</span>
+        <FlagIcon lang={lang} />
         {lang}
       </button>
 
@@ -56,7 +56,7 @@ export function LanguageSwitcher() {
                 l.code === lang ? "bg-accent/12 text-accent" : "hover:bg-black/5 dark:hover:bg-white/5"
               }`}
             >
-              <span className="text-base leading-none">{l.flag}</span>
+              <FlagIcon lang={l.code} />
               {l.label}
             </button>
           ))}
